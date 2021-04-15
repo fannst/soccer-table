@@ -23,10 +23,11 @@ OBJCOPY 		:= objcopy
 GCC_ARGS 		+= -Os
 GCC_ARGS 		+= -Wall
 GCC_ARGS 		+= -I./inc
-GCC_ARGS 		+= -fdata-sections
-GCC_ARGS 		+= -ffunction-sections
 GCC_ARGS		+= -I$(LIBRARY_DIR)/spfp/inc
 GCC_ARGS		+= -I../shared/inc
+
+GPP_ARGS		+= $(GCC_ARGS)
+GPP_ARGS		+= -D__USE_CXX
 
 LINKER_ARGS 	+= $(GCC_ARGS)
 LINKER_ARGS 	+= -Wl,--gc-sections
@@ -39,22 +40,22 @@ LINKER_ARGS 	+= -Wl,--gc-sections
 CPP_SOURCES 	:= $(shell find src -name "*.cpp")
 
 # Adds the SPFP Sources (Compile as C++ to make it compatable with our code)
-FAKE_CC_SOURCES += $(LIBRARY_DIR)/spfp/src/spfp.c
-FAKE_CC_SOURCES += $(LIBRARY_DIR)/spfp/src/helpers/linux.c
+C_SOURCES 		+= $(LIBRARY_DIR)/spfp/src/spfp.c
+C_SOURCES 		+= $(LIBRARY_DIR)/spfp/src/helpers/linux.c
 
 # Translates them to object files
 OBJECTS 		+= $(CPP_SOURCES:.cpp=.x86.o)
-OBJECTS			+= $(FAKE_CC_SOURCES:.c=.x86.lib.o)
+OBJECTS			+= $(C_SOURCES:.c=.x86.o)
 
 #
 # Make Rules.
 #
 
-%.x86.lib.o: %.c
-	$(GPP)  $(GCC_ARGS) -c $< -o $@
+%.x86.o: %.c
+	$(GCC)  $(GCC_ARGS) -c $< -o $@
 
 %.x86.o: %.cpp
-	$(GPP)  $(GCC_ARGS) -c $< -o $@
+	$(GPP)  $(GPP_ARGS) -c $< -o $@
 
 all: $(OBJECTS)
 	$(LINKER) $(LINKER_ARGS) $(OBJECTS) -o main.elf

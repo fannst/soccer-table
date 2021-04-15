@@ -52,6 +52,13 @@ typedef struct __attribute__ (( packed )) {
 } spfp_lram_move_pkt_t;
 
 typedef struct __attribute__ (( packed )) {
+	unsigned		axis : 5;		/* Axis Selection */
+	unsigned		msel : 2;		/* Motor Select */
+	unsigned		hnex : 1;		/* Has Next */
+	uint8_t			next[0];
+} spfp_lram_home_pkt_t;
+
+typedef struct __attribute__ (( packed )) {
 	uint8_t 		op;			/* Operation Code */
 	uint8_t			p[0];		/* The Payload */
 } spfp_lram_pkt_t;
@@ -70,3 +77,6 @@ typedef struct __attribute__ (( packed )) {
 	uint8_t			c;				/* Packet Class */
 	uint8_t			p[0];			/* Payload */
 } spfp_class_pkt_t;
+
+/// Gets the next LRAM home packet, returns nullptr if not exists.
+spfp_lram_home_pkt_t *spfp_lram_home_next (spfp_lram_home_pkt_t *pkt) noexcept;

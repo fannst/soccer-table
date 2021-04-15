@@ -1,4 +1,5 @@
 #include "Delay.hpp"
+#include "peripherals/Watchdog.hpp"
 
 void Delay::Init (void) noexcept {
 	RCC->APB2ENR |= RCC_APB2ENR_TIM8EN;
@@ -6,6 +7,7 @@ void Delay::Init (void) noexcept {
 }
 
 void Delay::Us (uint16_t n) noexcept {
+	Watchdog::Kick ();
 	TIM8->CNT = 0;
 	TIM8->ARR = n;
 	TIM8->CR1 = TIM_CR1_CEN | TIM_CR1_OPM;

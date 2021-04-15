@@ -6,6 +6,7 @@
 #include "spfp.h"
 
 #include "peripherals/Watchdog.hpp"
+#include "drivers/Buzzer.hpp"
 #include "datatypes/FIFO.hpp"
 #include "peripherals/USART.hpp"
 #include "spfp_ext.hpp"
@@ -34,10 +35,16 @@ public:
 	void Loop (void) noexcept;
 
 	/// Gets called when a SPFP packet is recieved.
-	void OnSPFPPacket (const spfp_packet_t *packet) noexcept;
+	void OnSPFPPacket (spfp_packet_t *packet) noexcept;
 
 	/// Gets called when a SPFP System packet.
 	void OnSPFPSystemPacket (const spfp_system_pkt_t *packet) noexcept;
+
+	/// Gets called on a LRAM packet.
+	void OnLRAMPacket (const spfp_lram_pkt_t *packet) noexcept;
+
+	/// Gets called on a LRAM Homing packet.
+	void OnLRAMHomePacket (const spfp_lram_home_pkt_t *packet) noexcept;
 
 	inline USART &getUsart1 (void) noexcept
 	{ return m_USART1; }
@@ -60,6 +67,9 @@ private:
 	Main (void) noexcept;
 	~Main (void) = default;
 
+	/* Driver Instances */
+	Buzzer m_Buzzer;
+
 	/* Peripheral Driver Instances */
 	USART m_USART1;
 
@@ -73,19 +83,6 @@ private:
 	/* The Singleton Instance */
 	static Main INSTANCE;
 };
-
-/**************************************************************
- * SPFP Overrides
- **************************************************************/
-
-/// Override for the write byte method.
-void __spfp_write_byte (uint8_t byte, void *u);
-
-/// Handles an overflwo of the buffer in a state machine.
-void __spfp_sm_overflow_handler (spfp_sm_t *sm);
-
-/// Gets called once a valid packet has been received.
-void __spfp_sm_packet_handler (spfp_sm_t *sm);
 
 /**************************************************************
  * Functions

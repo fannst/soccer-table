@@ -4,6 +4,13 @@
 #include "helpers/linux.h"
 #include "spfp_ext.hpp"
 
+extern "C" void __spfp_sm_packet_handler (spfp_sm_t *sm) {
+}
+
+extern "C" void __spfp_sm_overflow_handler (spfp_sm_t *sm) {
+
+}
+
 void send_beep_packet (spfp_linux_session_t *session) noexcept {
 	// Calculates the resulting packet size.
 	constexpr uint16_t size = sizeof (spfp_packet_t)
@@ -25,6 +32,7 @@ void send_beep_packet (spfp_linux_session_t *session) noexcept {
 
 	// Writes the packet.
 	spfp_linux_session_write (session, packet);
+	printf ("Wrote packet!\r\n");
 
 	free (packet);
 }

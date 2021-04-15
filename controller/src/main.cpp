@@ -28,6 +28,7 @@ extern "C" void USART1_IRQHandler (void) noexcept {
  **************************************************************/
 
 Main::Main (void) noexcept:
+	m_Buzzer(GPIOA, 1),
 	m_USART1 (USART1),
 	m_SPFPFifoPacketCount (0),
 	m_SPFPFifo(m_SPFPFifoBuffer, MAIN_SPFP_FIFO_BUFFER_SIZE)
@@ -43,17 +44,21 @@ void Main::Setup (void) noexcept {
 	Main::ResetClockControlInit ();
 	Main::StatusLEDsInit ();
 	Main::PeripheralsInit ();
+
+	m_Buzzer.Buzz(900, 150);
 }
 
 void Main::Loop (void) noexcept {
 	if (m_SPFPFifoPacketCount > 0) {
+		--m_SPFPFifoPacketCount;
+
 		uint16_t packetLen;
 		uint8_t *buffer;
 
 		// Reads the packet length from the FIFO, after which we allocate the required
 		//  number of bytes and read the packet from the FIFO.
 		m_SPFPFifo.ReadBytes(reinterpret_cast<uint8_t *>(&packetLen), sizeof (uint16_t));
-		buffer = reinterpret_cast<uint8_t *>(malloc (packetLen));
+		buffer = reinerpret_cast<uint8_t *>(malloc (packetLen));
 		m_SPFPFifo.ReadBytes(buffer, packetLen);
 
 		// Checks the packet, gets the class and performs a switch to indicate
@@ -76,8 +81,10 @@ void Main::Loop (void) noexcept {
 }
 
 /// Gets called when a SPFP packet is recieved.
-void Main::OnSPFPPacket (const spfp_packet_t *packet) noexcept {
-	if (spfp_calc_checksum(packet) != 0xFF) {
+void Main::OnSPFPPacket (spfp_packet_t *packet) noexcept {
+	uint8_t cs = packet->cs;
+	packet->cs = 0;
+	if (spfp_calc_checksum(packet) != cs) {
 		return;
 	}
 
@@ -92,14 +99,34 @@ void Main::OnSPFPPacket (const spfp_packet_t *packet) noexcept {
 void Main::OnSPFPSystemPacket (const spfp_system_pkt_t *packet) noexcept {\
 	switch (packet->op) {
 		case SPFP_CONTROL_OP_BEEP:
-			GPIOE->ODR &= ~GPIO_ODR_OD0;
-			Delay::Ms (1000);
-			GPIOE->ODR |= GPIO_ODR_OD0;
+			m_Buzzer.Buzz (200, 500);
+			Delay::Ms(120);
+			m_Buzzer.Buzz(200, 400);
 			break;
 		case SPFP_CONTROL_OP_RESTART:
 			NVIC_SystemReset ();
 			break;
+        default:
+            break;
 	}
+}
+
+/// Gets called on a LRAM packet.
+void Main::OnLRAMPacket (const spfp_lram_pkt_t *packet) noexcept {
+    switch (packet->op) {
+        case SPFP_LRAM_OP_HOME:
+            OnLRAMHomePacket (reinterpret_cast<const spfp_lram_home_pkt_t *>(packet->p));
+            break;
+        default:t
+            break;
+    }
+}
+
+/// Gets called on a LRAM Homing packet.
+void Home::OnLRAMHomePacket (const spfp_lram_home_pkt_t *packet) noexcept {
+    do {
+        packet = spfp_lram_home_next (packet);
+    } while (packet != nullptr);
 }
 
 /// Initializes the RCC clock sources for peripherals.
@@ -114,6 +141,8 @@ void Main::PeripheralsInit (void) noexcept {
 	Watchdog::Init ();			// Initializes the WWDG1.
 	Delay::Init ();				// Initializes the delay functions.
 	Main::RS232Init ();			// Initializes the RS232 USART.
+
+	m_Buzzer.Init ();
 }
 
 /// Initializes the USART2 and the RS232 peripheral.
@@ -148,21 +177,23 @@ void Main::StatusLEDsInit (void) noexcept {
  * SPFP Overrides
  **************************************************************/
 
-/// Override for the write byte method.
-void __spfp_write_byte (uint8_t byte, void *u) {
-	reinterpret_cast<USART *>(u)->Write(byte);
-}
+extern "C" {
+	/// Override for the write byte method.
+	void __spfp_write_byte (uint8_t byte, void *u) {
+		reinterpret_cast<USART *>(u)->Write(byte);
+	}
 
-/// Handles an overflwo of the buffer in a state machine.
-void __spfp_sm_overflow_handler (spfp_sm_t *sm) {
-	// Overflows are not accepted, and if one happens
-	//  the system is failing, so reset.
-	NVIC_SystemReset ();
-}
+	/// Handles an overflwo of the buffer in a state machine.
+	void __spfp_sm_overflow_handler (spfp_sm_t *sm) {
+		// Overflows are not accepted, and if one happens
+		//  the system is failing, so reset.
+		NVIC_SystemReset ();
+	}
 
-/// Gets called once a valid packet has been received.
-void __spfp_sm_packet_handler (spfp_sm_t *sm) {
-	Main::GetInstance ().OnSPFPPacket (reinterpret_cast<spfp_packet_t *>(sm->b));
+	/// Gets called once a valid packet has been received.
+	void __spfp_sm_packet_handler (spfp_sm_t *sm) {
+		Main::GetInstance ().OnSPFPPacket (reinterpret_cast<spfp_packet_t *>(sm->b));
+	}
 }
 
 /**************************************************************

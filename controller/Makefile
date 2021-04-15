@@ -44,6 +44,9 @@ GCC_ARGS 		+= -D__DEBUG
 GCC_ARGS		+= -I$(LIBRARY_DIR)/spfp/inc
 GCC_ARGS		+= -I../shared/inc
 
+GPP_ARGS		+= $(GCC_ARGS)
+GPP_ARGS		+= -D__USE_CXX
+
 LINKER_ARGS 	+= $(GCC_ARGS)
 LINKER_ARGS 	+= -T $(LINKER_SCRIPT)
 LINKER_ARGS 	+= -fdata-sections
@@ -61,13 +64,10 @@ FLASH_ARGS 		+= 0x8000000
 # Gets the default sources
 CPP_SOURCES 	:= $(shell find src -name "*.cpp")
 C_SOURCES 		:= $(shell find src -name "*.c")
-
-# Adds the SPFP Sources (Compile as C++ to make it compatable with our code)
-FAKE_CC_SOURCES := $(LIBRARY_DIR)/spfp/src/spfp.c
+C_SOURCES 		+= $(LIBRARY_DIR)/spfp/src/spfp.c
 
 # Translates them to object files
 OBJECTS 		+= $(CPP_SOURCES:.cpp=.arm.o)
-OBJECTS			+= $(FAKE_CC_SOURCES:.c=.arm.lib.o)
 OBJECTS 		+= $(C_SOURCES:.c=.arm.o)
 
 #
@@ -81,7 +81,7 @@ OBJECTS 		+= $(C_SOURCES:.c=.arm.o)
 	$(GPP)  $(GCC_ARGS) -c $< -o $@
 
 %.arm.o: %.cpp
-	$(GPP)  $(GCC_ARGS) -c $< -o $@
+	$(GPP)  $(GPP_ARGS) -c $< -o $@
 
 %.arm.o: %.s
 	$(GCC) $(GCC_ARGS) -c $< -o $@
