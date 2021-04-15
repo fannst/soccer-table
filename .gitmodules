@@ -1,0 +1,3 @@
+[submodule "shared/lib/spfp"]
+	path = shared/lib/spfp
+	url = https://github.com/fannst/spfp

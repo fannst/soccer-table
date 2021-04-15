@@ -1,0 +1,4 @@
+-I./vendor
+-I./inc
+-I../shared/lib/spfp/inc
+-I../shared/inc
