@@ -39,7 +39,6 @@ namespace SPFP {
 
     /// Gets called on each direct byte write, to ensure transmission.
 		void TermiosSession::EnsureTransmission (void) noexcept {
-
     }
 
     /// Polls for RX.
@@ -74,7 +73,21 @@ namespace SPFP {
     }
 
 		/// Polls for TX.
-		void TermiosSession::TXPoll (void) noexcept {
+		void TermiosSession::TXPoll (void) {
+      // Checks if buffer is empty, if so do nothing.
+      if (m_TXBuffer.IsEmpty ()) {
+        return;
+      }
 
+      uint32_t size = m_TXBuffer.GetSize ();
+      uint8_t *buffer = new uint8_t[size];
+      m_TXBuffer.Read (buffer, size);
+
+      if (write (m_FD, buffer, size) == -1) {
+        delete buffer;
+        throw std::runtime_error (std::string ("Write failed: ") + strerror (errno));
+      }
+
+      delete buffer;
     }
 }

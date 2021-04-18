@@ -37,6 +37,9 @@ public:
 	/// Gets called over and over again, used for polling to replace interrupts.
 	void Poll (void) noexcept;
 
+	/// Handles control protocol packet.
+	void HandleControlPacket (const SPFP::frame_t *frame) noexcept;
+
 	inline USART &getUsart1 (void) noexcept
 	{ return m_SPFPUsart; }
 private:

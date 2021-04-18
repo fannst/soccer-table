@@ -17,6 +17,7 @@ limitations under the License.
 */
 
 #include <stdexcept>
+#include <iostream>
 
 #include <stdio.h>
 #include <string.h>
@@ -50,7 +51,7 @@ namespace SPFP {
 		virtual void RXPoll (void);
 
 		/// Polls for TX.
-		virtual void TXPoll (void) noexcept;
+		virtual void TXPoll (void);
   protected:
     int32_t m_FD;
   };

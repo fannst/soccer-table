@@ -11,7 +11,7 @@ namespace SPFP {
   /// Polls for RX.
   void USARTSession::RXPoll (void) noexcept {
     if (m_USART.IsRXNE ()) { // Data available in USART->DR
-
+      UpdateRXStateMachine (m_USART.Read ());
     }
   }
 

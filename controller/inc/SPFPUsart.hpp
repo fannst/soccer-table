@@ -39,7 +39,8 @@ namespace SPFP {
 		/// Polls for TX.
 		virtual void TXPoll (void) noexcept;
 
-        uint8_t WRITE_BUFF[128];
+        uint8_t WRITE_BUFF[256];
+        uint8_t READ_BUFF[256];
     protected:
         USART &m_USART;
 
