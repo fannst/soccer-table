@@ -1,9 +1,10 @@
 #include "Delay.hpp"
+#include "Sysclock.hpp"
 #include "peripherals/Watchdog.hpp"
 
 void Delay::Init (void) noexcept {
 	RCC->APB2ENR |= RCC_APB2ENR_TIM8EN;
-	TIM8->PSC = 120;
+	TIM8->PSC = APB2_TIMER;
 }
 
 void Delay::Us (uint16_t n) noexcept {

@@ -9,7 +9,7 @@
 LIBRARY_DIR 	:= ../shared/lib
 
 # Microcontroller Definitions.
-MCPU 			:= cortex-m7
+MCPU 			:= cortex-m4
 
 # Defines the toolchain.
 TOOLCHAIN 		?= arm-none-eabi
@@ -43,6 +43,7 @@ GCC_ARGS 		+= -mfloat-abi=soft
 GCC_ARGS 		+= -D__DEBUG
 GCC_ARGS		+= -I$(LIBRARY_DIR)/spfp/inc
 GCC_ARGS		+= -I../shared/inc
+GCC_ARGS		+= -D__EMBED
 
 GPP_ARGS		+= $(GCC_ARGS)
 GPP_ARGS		+= -D__USE_CXX
@@ -63,8 +64,8 @@ FLASH_ARGS 		+= 0x8000000
 
 # Gets the default sources
 CPP_SOURCES 	:= $(shell find src -name "*.cpp")
+CPP_SOURCES 	+= $(shell find ../shared/src/ -name "*.cpp")
 C_SOURCES 		:= $(shell find src -name "*.c")
-C_SOURCES 		+= $(LIBRARY_DIR)/spfp/src/spfp.c
 
 # Translates them to object files
 OBJECTS 		+= $(CPP_SOURCES:.cpp=.arm.o)

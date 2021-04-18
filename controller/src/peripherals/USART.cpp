@@ -22,8 +22,8 @@ void USART::Init (uint32_t clk, uint32_t baud) {
 
 /// Writes an single char to the USART peripheral.
 void USART::Write (uint8_t c) const {
-	*reinterpret_cast<volatile uint8_t *>(&m_USART->TDR) = c;
-	while (!(m_USART->ISR & USART_ISR_TXE_TXFNF));
+	*reinterpret_cast<volatile uint8_t *>(&m_USART->DR) = c;
+	while (!(m_USART->SR & USART_SR_TXE));
 }
 
 /// Writes N bytes to the USART peripheral.
@@ -42,6 +42,6 @@ void USART::Write (const char *s) const {
 
 /// Reads an byte from the USART peripheral.
 uint8_t USART::Read (void) const {
-	while (!(m_USART->ISR & USART_ISR_RXNE_RXFNE));
-	return *reinterpret_cast<volatile uint8_t *>(&m_USART->RDR);
+	while (!(m_USART->SR & USART_SR_RXNE));
+	return *reinterpret_cast<volatile uint8_t *>(&m_USART->DR);
 }

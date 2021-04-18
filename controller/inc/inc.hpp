@@ -7,6 +7,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "stm32h750xx.h"
+#include "stm32f446xx.h"
 
 #pragma once

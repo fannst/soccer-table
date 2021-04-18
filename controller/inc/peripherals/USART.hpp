@@ -37,6 +37,15 @@ public:
 		m_USART->CR1 |= USART_CR1_RXNEIE;
 	}
 
+	/// Checks the RXNE Flag.
+	inline bool IsRXNE (void) noexcept {
+		return m_USART->SR & USART_SR_RXNE;
+	}
+
+	/// Checks the TXE Flag.
+	inline bool IsTXE (void) noexcept {
+		return m_USART->SR & USART_SR_TXE;
+	}
 protected:
 	USART_TypeDef *m_USART;
 };

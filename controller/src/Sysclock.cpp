@@ -1,82 +1,67 @@
 #include "Sysclock.hpp"
 
+/*
+  == STM32F446 Clock Configuration for 180Mhz system ==
+
+  -- PLL
+  PLL Source Mux : HSE
+  PLLM : /4
+  PLLN : x180
+  PLLP : /2
+  PLLQ : /2
+  PLLR : /2
+
+  -- System
+  System Clock Mux : PLLCLK
+  AHB  : /1
+  APB1 : /4
+  APB2 : /2
+
+  -- Clocks
+  Power : 180Mhz
+  HCLK, AHB Bus, Core, DMA : 180Mhz
+  Cortex System Timer : 180Mhz
+  FCLK : 180Mhz
+  APB1 Peripheral : 45Mhz
+  APB1 Timer : 90Mhz
+  APB2 Peripheral: 90Mhz
+  APB2 Timer : 180Mhz
+
+  == End Clock Configuration for 180Mhz system ==
+*/
+
 void Sysclock::Init (void) noexcept {
-	//
-	// Configures flash
-	//
+  // Enables the HSE (High Speed External) Crystal.
+  RCC->CR |= RCC_CR_HSEON;											// Enable High Speed External
+  while (!(RCC->CR & RCC_CR_HSERDY));						// Wait for HSE to be stable
 
-	// Sets 2 flash wait states due to the BUS frequency of 120 Mhz
+  // Configures the flash to use 5 wait states, this is for HCLK <= 168, so
+  //  we're kinda breaking rules LOL.
+  FLASH->ACR = (FLASH_ACR_LATENCY_5WS						// 5 flash wait states
+    | FLASH_ACR_ICEN														// Instruction Cache Enable
+    | FLASH_ACR_DCEN														// Data Cache Enable
+    | FLASH_ACR_PRFTEN													// Prefetch Enable
+  );
 
-	FLASH->ACR &= FLASH_ACR_LATENCY;
-	FLASH->ACR |= FLASH_ACR_LATENCY_2WS;
+  // Configures AHB, APB1 and APB2
+  RCC->CFGR = ((0b0000 << RCC_CFGR_HPRE_Pos)		// - /1 (No clock division)
+    | (0b101 << RCC_CFGR_PPRE1_Pos)							// - /4 (Divide APB1 by 4)
+    | (0b100 << RCC_CFGR_PPRE2_Pos)							// - /2 (Divide APB2 by 2)
+  );	
 
-	//
-	// Configures the actual clock
-	//
+  // Configures the PLL
+  RCC->PLLCFGR = ((180 <<	RCC_PLLCFGR_PLLN_Pos)	// - x180 (Source clock x180)
+    | (0b000100 << RCC_PLLCFGR_PLLM_Pos)				// - /4 (PLLM Divide by 4)
+    | (0b00 << RCC_PLLCFGR_PLLP_Pos)						// - /2 (PLLP Divide by 2)
+    | (0b0010 << RCC_PLLCFGR_PLLQ_Pos)					// - /4 (PLLQ Divide by 2)
+    | RCC_PLLCFGR_PLLSRC												// PLL Source: HSE
+  );
 
-	// Enables HSE
-	RCC->CR |= RCC_CR_HSEON;
-	while (!(RCC->CR & RCC_CR_HSERDY));
+  // Enables the PLL and waits for it to be stable.
+  RCC->CR |= RCC_CR_PLLON;											// Enable PLL
+  while (!(RCC->CR & RCC_CR_PLLRDY));						// Wait for PLL to be ready
 
-	// Sets the PLLSRC to HSE
-	RCC->PLLCKSELR &= ~RCC_PLLCKSELR_PLLSRC;
-	RCC->PLLCKSELR |= RCC_PLLCKSELR_PLLSRC_HSE;
-
-	// Configure PLL1
-	RCC->PLLCKSELR &= ~RCC_PLLCKSELR_DIVM1;				// Clear DIVM1
-	RCC->PLLCKSELR |= (2 << RCC_PLLCKSELR_DIVM1_Pos);	// DIVM1: /2
-
-	RCC->PLL1DIVR &= ~RCC_PLL1DIVR_N1;					// Clear DIVN1
-	RCC->PLL1DIVR |= (119 << RCC_PLL1DIVR_N1_Pos);		// DIVN1: 120 ( 119 because 0x000 is 1 )
-
-	RCC->PLL1DIVR &= ~RCC_PLL1DIVR_P1;					// Clear DIVP1
-	RCC->PLL1DIVR |= (1 << RCC_PLL1DIVR_P1_Pos);		// DIVP1: 2, 0b1 = CLK/2
-
-	// Enable PLL1Q Output ( For RNG ), and set DIV to 10, to get 48Mhz
-	RCC->PLLCFGR |= RCC_PLLCFGR_DIVQ1EN;
-	RCC->PLL1DIVR &= ~RCC_PLL1DIVR_Q1;
-	RCC->PLL1DIVR |= (9 << RCC_PLL1DIVR_R1_Pos);		// 9 because 0b00 = 1
-
-	// Configures HPRE
-	RCC->D1CFGR &= RCC_D1CFGR_HPRE;						// Clear HPRE
-	RCC->D1CFGR |= RCC_D1CFGR_HPRE_DIV2;				// HPRE: /2
-
-	// Enable PLL1
-	RCC->CR |= RCC_CR_PLL1ON;
-	while (!(RCC->CR & RCC_CR_PLL1RDY));
-
-	// Select PLL1 as main clock source
-	RCC->CFGR |= RCC_CFGR_SW_PLL1;
-	while ((RCC->CFGR & RCC_CFGR_SW_Msk) != RCC_CFGR_SW_PLL1);
-
-	//
-	// Configures backup domain
-	//
-
-	// Grant access to backup domain
-	PWR->CR1 |= PWR_CR1_DBP;
-
-	// Checks if backup domain reset is required
-	if ((RCC->BDCR & RCC_BDCR_RTCSEL) >> RCC_BDCR_RTCSEL_Pos != 0b01)
-	{
-		// Resets backup domain
-		RCC->BDCR |= RCC_BDCR_BDRST;
-		RCC->BDCR &= ~RCC_BDCR_BDRST;
-
-		// Selects the clock source for the RTC
-		RCC->BDCR |= (0b01 << RCC_BDCR_RTCSEL_Pos);
-	}
-
-	// Enables LSE
-	RCC->BDCR |= RCC_BDCR_LSEON;
-	while (!(RCC->BDCR & RCC_BDCR_LSERDY));
-
-	// Enables LSE Clock Security
-	RCC->BDCR |= RCC_BDCR_LSECSSON;
-
-	//
-	// Configures the RTC
-	//
-
-	RCC->BDCR |= RCC_BDCR_RTCEN;
+  // Use PLL as mainclock source.
+  RCC->CFGR |= (0b10 << RCC_CFGR_SW_Pos);       // Use PLL as system clock source.
+  while (((RCC->CFGR & RCC_CFGR_SW) >> RCC_CFGR_SW_Pos) != 0b10);
 }

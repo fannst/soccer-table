@@ -3,13 +3,10 @@
 */
 
 #include "inc.hpp"
-#include "spfp.h"
 
 #include "peripherals/Watchdog.hpp"
 #include "drivers/Buzzer.hpp"
-#include "datatypes/FIFO.hpp"
 #include "peripherals/USART.hpp"
-#include "spfp_ext.hpp"
 
 #pragma once
 
@@ -32,25 +29,15 @@ public:
 	static Main &GetInstance (void) noexcept;
 
 	void Setup (void) noexcept;
+	
+	/// Gets called over and over again, used for process main loop.
 	void Loop (void) noexcept;
 
-	/// Gets called when a SPFP packet is recieved.
-	void OnSPFPPacket (spfp_packet_t *packet) noexcept;
-
-	/// Gets called when a SPFP System packet.
-	void OnSPFPSystemPacket (const spfp_system_pkt_t *packet) noexcept;
-
-	/// Gets called on a LRAM packet.
-	void OnLRAMPacket (const spfp_lram_pkt_t *packet) noexcept;
-
-	/// Gets called on a LRAM Homing packet.
-	void OnLRAMHomePacket (const spfp_lram_home_pkt_t *packet) noexcept;
+	/// Gets called over and over again, used for polling to replace interrupts.
+	void Poll (void) noexcept;
 
 	inline USART &getUsart1 (void) noexcept
-	{ return m_USART1; }
-
-	inline spfp_sm_t *getSPFPSM (void) noexcept
-	{ return &m_SPFPStateMachine; }
+	{ return m_SPFPUsart; }
 private:
 	/// Initializes the RCC clock sources for peripherals.
 	void ResetClockControlInit (void) noexcept;
@@ -58,8 +45,11 @@ private:
 	/// Initializes the peripherals / drivers.
 	void PeripheralsInit (void) noexcept;
 
-	/// Initializes the USART2 and the RS232 peripheral.
-	void RS232Init (void) noexcept;
+	/// Initializes the USART1 for SPFP.
+	void SPFPUsartInit (void) noexcept;
+
+	/// Initializes the debug USART
+	void DebugUsartInit (void) noexcept;
 
 	/// Initializes the status LED's.
 	void StatusLEDsInit (void) noexcept;
@@ -71,14 +61,8 @@ private:
 	Buzzer m_Buzzer;
 
 	/* Peripheral Driver Instances */
-	USART m_USART1;
-
-	/* SPFP Instance Variables */
-	uint8_t m_SPFPFifoBuffer[MAIN_SPFP_FIFO_BUFFER_SIZE];
-	uint8_t m_SPFPBuffer[MAIN_SPFP_BUFFER_SIZE];
-	uint8_t m_SPFPFifoPacketCount;
-	FIFO m_SPFPFifo;
-	spfp_sm_t m_SPFPStateMachine;
+	USART m_SPFPUsart,
+				m_DebugUsart;
 
 	/* The Singleton Instance */
 	static Main INSTANCE;

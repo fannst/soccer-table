@@ -6,6 +6,6 @@ spfp_lram_home_pkt_t *spfp_lram_home_next (spfp_lram_home_pkt_t *pkt) noexcept {
 		return nullptr;
 	}
 
-	return pkt->next;
+	return reinterpret_cast<spfp_lram_home_pkt_t *> (pkt->next);
 }
 

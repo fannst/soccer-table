@@ -23,7 +23,6 @@ OBJCOPY 		:= objcopy
 GCC_ARGS 		+= -Os
 GCC_ARGS 		+= -Wall
 GCC_ARGS 		+= -I./inc
-GCC_ARGS		+= -I$(LIBRARY_DIR)/spfp/inc
 GCC_ARGS		+= -I../shared/inc
 
 GPP_ARGS		+= $(GCC_ARGS)
@@ -40,8 +39,8 @@ LINKER_ARGS 	+= -Wl,--gc-sections
 CPP_SOURCES 	:= $(shell find src -name "*.cpp")
 
 # Adds the SPFP Sources (Compile as C++ to make it compatable with our code)
-C_SOURCES 		+= $(LIBRARY_DIR)/spfp/src/spfp.c
-C_SOURCES 		+= $(LIBRARY_DIR)/spfp/src/helpers/linux.c
+CPP_SOURCES += ../shared/src/spfp.cpp
+CPP_SOURCES += ../shared/src/fifo.cpp
 
 # Translates them to object files
 OBJECTS 		+= $(CPP_SOURCES:.cpp=.x86.o)
