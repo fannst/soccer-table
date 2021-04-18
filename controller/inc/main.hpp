@@ -7,6 +7,7 @@
 #include "peripherals/Watchdog.hpp"
 #include "drivers/Buzzer.hpp"
 #include "peripherals/USART.hpp"
+#include "SPFPUsart.hpp"
 
 #pragma once
 
@@ -63,6 +64,8 @@ private:
 	/* Peripheral Driver Instances */
 	USART m_SPFPUsart,
 				m_DebugUsart;
+
+	SPFP::USARTSession m_SPFPUsartSession;
 
 	/* The Singleton Instance */
 	static Main INSTANCE;

@@ -20,6 +20,9 @@ public:
 	// Initializes the USART peripheral with the specified baud rate.
 	virtual void Init (uint32_t clk, uint32_t baud);
 
+	/// Writes an single char to the USART peripheral and skips polling.
+	virtual void WriteDangerous (uint8_t c) const noexcept;
+
 	/// Writes an single char to the USART peripheral.
 	virtual void Write (uint8_t c) const;
 

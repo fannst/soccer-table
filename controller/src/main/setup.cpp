@@ -29,6 +29,8 @@ void Main::PeripheralsInit (void) noexcept {
 	Main::SPFPUsartInit ();
 	Main::DebugUsartInit ();
 
+	m_SPFPUsartSession.Init ();
+
 	m_Buzzer.Init ();
 }
 

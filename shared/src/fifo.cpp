@@ -2,7 +2,7 @@
 
 
 RingBuffer::RingBuffer (uint8_t *buffer, uint32_t capacity) noexcept:
-	m_Buffer (buffer), m_Size (0), m_Capacity (0), m_Write (0), m_Read (0)
+	m_Buffer (buffer), m_Size (0), m_Capacity (capacity), m_Write (0), m_Read (0)
 {}
 
 /// Writes a byte into the ring buffer.

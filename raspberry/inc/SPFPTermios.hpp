@@ -16,33 +16,42 @@ limitations under the License.
 
 */
 
+#include <stdexcept>
+
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <signal.h>
+#include <termios.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/inotify.h>
+#include <err.h>
+#include <errno.h>
+#include <sys/ioctl.h>
+
 #include "spfp.hpp"
-#include "peripherals/USART.hpp"
 
 #pragma once
 
 namespace SPFP {
-    class USARTSession : public Session {
-    public:
-        /// Initializes a new USARTSession with the specified USART peripheral.
-        USARTSession (USART &usart) noexcept;
+  class TermiosSession : public Session {
+  public:
+    /// Creates new termios session instance.
+    TermiosSession (void) noexcept;
 
-        /// Calls the SPFP Usart session initialization code.
-        void Init (void) noexcept;
+    /// Creates the session for the specified path.
+    void Connect (const char *path, uint32_t baud);
 
-        /// Gets called on each direct byte write, to ensure transmission.
+    /// Gets called on each direct byte write, to ensure transmission.
 		virtual void EnsureTransmission (void) noexcept;
 
-        /// Polls for RX.
-		virtual void RXPoll (void) noexcept;
+    /// Polls for RX.
+		virtual void RXPoll (void);
 
 		/// Polls for TX.
 		virtual void TXPoll (void) noexcept;
-
-        uint8_t WRITE_BUFF[128];
-    protected:
-        USART &m_USART;
-
-        bool m_FirstInSequence;
-    };
+  protected:
+    int32_t m_FD;
+  };
 }

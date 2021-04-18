@@ -11,7 +11,8 @@ Main Main::INSTANCE;
 Main::Main (void) noexcept:
 	m_Buzzer(GPIOA, 1),
 	m_SPFPUsart (USART1),
-	m_DebugUsart (USART2)
+	m_DebugUsart (USART2),
+	m_SPFPUsartSession (m_SPFPUsart)
 {
 }
  
@@ -30,7 +31,8 @@ extern "C" int main (void) noexcept {
 	main.Setup ();
 
 	for (;;) {
-		main.Loop ();
+		main.Poll ();			// Calls the main polling code.
+		main.Loop ();			// Calls the main looping code.
 	}
 
 	return 0;

@@ -20,6 +20,11 @@ void USART::Init (uint32_t clk, uint32_t baud) {
 		| USART_CR1_UE;				// USART Enable (EN)
 }
 
+/// Writes an single char to the USART peripheral and skips polling.
+void USART::WriteDangerous (uint8_t c) const noexcept {
+	*reinterpret_cast<volatile uint8_t *>(&m_USART->DR) = c;
+}
+
 /// Writes an single char to the USART peripheral.
 void USART::Write (uint8_t c) const {
 	*reinterpret_cast<volatile uint8_t *>(&m_USART->DR) = c;

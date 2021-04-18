@@ -30,6 +30,7 @@ GPP_ARGS		+= -D__USE_CXX
 
 LINKER_ARGS 	+= $(GCC_ARGS)
 LINKER_ARGS 	+= -Wl,--gc-sections
+LINKER_ARGS 	+= -pthread
 
 #
 # Gets the source files.
@@ -37,10 +38,7 @@ LINKER_ARGS 	+= -Wl,--gc-sections
 
 # Gets the default sources
 CPP_SOURCES 	:= $(shell find src -name "*.cpp")
-
-# Adds the SPFP Sources (Compile as C++ to make it compatable with our code)
-CPP_SOURCES += ../shared/src/spfp.cpp
-CPP_SOURCES += ../shared/src/fifo.cpp
+CPP_SOURCES 	+= $(shell find ../shared/src/ -name "*.cpp")
 
 # Translates them to object files
 OBJECTS 		+= $(CPP_SOURCES:.cpp=.x86.o)
